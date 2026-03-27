@@ -48,7 +48,8 @@ class TeeItUpProvider(BookingProvider):
             for slot in tee_times:
                 if not isinstance(slot, dict):
                     continue
-                tee_time = self._build_tee_time(course, request, facility_id, slot)
+                candidate_rates = _candidate_rates(slot, request)
+                tee_time = self._build_tee_time(course, request, facility_id, slot, candidate_rates)
                 if tee_time and tee_time.matches(request):
                     results.append(tee_time)
         return results
@@ -59,14 +60,20 @@ class TeeItUpProvider(BookingProvider):
         request: SearchRequest,
         facility_id: str,
         slot: dict[str, Any],
+        candidate_rates: list[dict[str, Any]],
     ) -> TeeTime | None:
         starts_at_value = slot.get("teetime")
-        if not starts_at_value:
+        if not starts_at_value or not candidate_rates:
             return None
 
         starts_at = normalize_course_datetime(parse_any_datetime(starts_at_value), course.timezone)
-        selected_rate = _select_rate(slot, request, course.provider_config)
-        available_players = _available_players(slot, selected_rate)
+        selected_rate = _select_rate(candidate_rates, request, course.provider_config)
+        player_options = _player_options(candidate_rates, slot)
+        hole_options = _hole_options(candidate_rates)
+        price_min, price_max = _price_range(candidate_rates)
+        holes = _display_holes(request, hole_options, selected_rate)
+        rate_name = _display_rate_name(candidate_rates, hole_options, selected_rate)
+        available_players = max(player_options) if player_options else _to_int(slot.get("maxPlayers"))
 
         return TeeTime(
             course_id=course.id,
@@ -74,12 +81,17 @@ class TeeItUpProvider(BookingProvider):
             provider=course.provider,
             starts_at=starts_at,
             available_players=available_players,
-            price=_cents_to_dollars(_extract_rate_cents(selected_rate)),
-            holes=_to_int(selected_rate.get("holes")) if selected_rate else None,
-            rate_name=_to_str(selected_rate.get("name")) if selected_rate else None,
+            player_options=player_options,
+            price=price_min,
+            price_min=price_min,
+            price_max=price_max,
+            holes=holes,
+            hole_options=hole_options,
+            rate_name=rate_name,
             booking_url=_render_booking_url(course, course.provider_config, facility_id, starts_at),
             raw={
                 "slot": slot,
+                "candidate_rates": candidate_rates,
                 "selected_rate": selected_rate,
             },
         )
@@ -105,20 +117,25 @@ def _build_query_params(
     return params
 
 
+def _candidate_rates(slot: dict[str, Any], request: SearchRequest) -> list[dict[str, Any]]:
+    rates = [rate for rate in slot.get("rates", []) if isinstance(rate, dict)]
+    if request.holes is not None:
+        rates = [rate for rate in rates if _to_int(rate.get("holes")) == request.holes]
+    if not rates:
+        return []
+    return [rate for rate in rates if _supports_players(rate, request.players)]
+
+
 def _select_rate(
-    slot: dict[str, Any],
+    rates: list[dict[str, Any]],
     request: SearchRequest,
     config: dict[str, Any],
 ) -> dict[str, Any] | None:
-    rates = [rate for rate in slot.get("rates", []) if isinstance(rate, dict)]
     if not rates:
         return None
 
-    requested_players = request.players
-    supported_rates = [rate for rate in rates if _supports_players(rate, requested_players)]
-    candidates = supported_rates or rates
-    preferred_holes = _to_int(config.get("prefer_holes"))
-    max_holes = max((_to_int(rate.get("holes")) or 0) for rate in candidates)
+    preferred_holes = request.holes or _to_int(config.get("prefer_holes"))
+    max_holes = max((_to_int(rate.get("holes")) or 0) for rate in rates)
 
     def sort_key(rate: dict[str, Any]) -> tuple[int, int, int, str]:
         holes = _to_int(rate.get("holes")) or 0
@@ -128,7 +145,7 @@ def _select_rate(
         name_rank = _to_str(rate.get("name")) or ""
         return (preferred_rank, fallback_rank, price_rank, name_rank)
 
-    return sorted(candidates, key=sort_key)[0]
+    return sorted(rates, key=sort_key)[0]
 
 
 def _supports_players(rate: dict[str, Any], requested_players: int) -> bool:
@@ -138,29 +155,67 @@ def _supports_players(rate: dict[str, Any], requested_players: int) -> bool:
     return requested_players in allowed_players
 
 
-def _available_players(slot: dict[str, Any], rate: dict[str, Any] | None) -> int | None:
-    remaining_players = _remaining_players(slot)
-    if rate:
+def _player_options(rates: list[dict[str, Any]], slot: dict[str, Any]) -> tuple[int, ...] | None:
+    values: set[int] = set()
+    for rate in rates:
         allowed_players = rate.get("allowedPlayers")
-        if isinstance(allowed_players, list):
-            allowed_values = [_to_int(value) for value in allowed_players]
-            allowed_candidates = [value for value in allowed_values if value is not None]
-            if allowed_candidates:
-                allowed_max = max(allowed_candidates)
-                if remaining_players is not None:
-                    return min(remaining_players, allowed_max)
-                return allowed_max
-    return remaining_players
-
-
-def _remaining_players(slot: dict[str, Any]) -> int | None:
+        if not isinstance(allowed_players, list):
+            continue
+        for value in allowed_players:
+            parsed = _to_int(value)
+            if parsed is not None:
+                values.add(parsed)
+    if values:
+        return tuple(sorted(values))
+    min_players = _to_int(slot.get("minPlayers"))
     max_players = _to_int(slot.get("maxPlayers"))
-    if max_players is None:
+    if min_players is not None and max_players is not None and min_players <= max_players:
+        return tuple(range(min_players, max_players + 1))
+    if max_players is not None:
+        return tuple(range(1, max_players + 1))
+    return None
+
+
+def _hole_options(rates: list[dict[str, Any]]) -> tuple[int, ...] | None:
+    values = {holes for rate in rates if (holes := _to_int(rate.get("holes"))) is not None}
+    if not values:
         return None
-    booked_players = _to_int(slot.get("bookedPlayers"))
-    if booked_players is None:
-        return max_players
-    return max(max_players - booked_players, 0)
+    return tuple(sorted(values))
+
+
+def _price_range(rates: list[dict[str, Any]]) -> tuple[float | None, float | None]:
+    cents_values = [_extract_rate_cents(rate) for rate in rates]
+    cents_values = [value for value in cents_values if value > 0]
+    if not cents_values:
+        return None, None
+    return _cents_to_dollars(min(cents_values)), _cents_to_dollars(max(cents_values))
+
+
+def _display_holes(
+    request: SearchRequest,
+    hole_options: tuple[int, ...] | None,
+    selected_rate: dict[str, Any] | None,
+) -> int | None:
+    if request.holes is not None:
+        return request.holes
+    if hole_options and len(hole_options) == 1:
+        return hole_options[0]
+    if selected_rate and hole_options and len(hole_options) == 1:
+        return _to_int(selected_rate.get("holes"))
+    return None
+
+
+def _display_rate_name(
+    rates: list[dict[str, Any]],
+    hole_options: tuple[int, ...] | None,
+    selected_rate: dict[str, Any] | None,
+) -> str | None:
+    names = {_to_str(rate.get("name")) for rate in rates if _to_str(rate.get("name"))}
+    if len(names) == 1:
+        return next(iter(names))
+    if hole_options and len(hole_options) == 1 and selected_rate:
+        return _to_str(selected_rate.get("name"))
+    return None
 
 
 def _extract_rate_cents(rate: dict[str, Any] | None) -> int:

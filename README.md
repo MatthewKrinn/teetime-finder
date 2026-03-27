@@ -18,7 +18,7 @@ The first version focuses on three goals:
 - Generic JSON and HTML/regex providers for simple integrations.
 - Request-recipe support for replaying real browser API calls from dynamic booking sites.
 - A CLI for local searching.
-- A lightweight local JSON API plus OpenAPI/Swagger docs.
+- A lightweight local web UI plus JSON API and OpenAPI/Swagger docs.
 - Freshness metadata and no-cache API responses for volatile tee-time data.
 
 ## Quick Start
@@ -27,22 +27,29 @@ From the project root:
 
 ```bash
 uv sync
-uv run tee-time-finder list-courses --config courses.live.json
-uv run tee-time-finder search --config courses.live.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
-uv run tee-time-finder search --config courses.pohick.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
-uv run tee-time-finder search --config courses.fairfax.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
-uv run tee-time-finder search --config courses.mcg.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder list-courses --config configs/live.json
+uv run tee-time-finder search --config configs/live.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config configs/pohick.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config configs/fairfax.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config configs/mcg.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder import-curl --curl-file request.txt --course-id pohick-bay --course-name "Pohick Bay" --provider teeitup
-uv run python -m tee_time_finder.web --config courses.live.json --port 8080
+uv run tee-time-finder serve --config configs/live.json --port 8080
 ```
 
 Then open:
 
+- `http://127.0.0.1:8080/` for the web UI
 - `http://127.0.0.1:8080/openapi.json` for the raw OpenAPI document
 - `http://127.0.0.1:8080/docs` for Swagger UI docs
 - `http://127.0.0.1:8080/api/search?date=2026-03-27&players=2&earliest=07:00&latest=11:30` for direct JSON search results
 
 Each result is a live snapshot and includes `retrieved_at`. Tee times can disappear or sell out after the response is returned.
+
+The web UI supports:
+
+- a dual-handle time window slider
+- 9-hole, 18-hole, or either filtering
+- grouped course controls so you can turn a whole family like MCG on or off, then fine-tune individual courses
 
 ## uv Workflow
 
@@ -52,8 +59,8 @@ Typical commands:
 
 ```bash
 uv sync
-uv run tee-time-finder list-courses --config courses.live.json
-uv run tee-time-finder search --config courses.live.json --date 2026-03-27 --players 2
+uv run tee-time-finder list-courses --config configs/live.json
+uv run tee-time-finder search --config configs/live.json --date 2026-03-27 --players 2
 uv run python -m unittest discover -s tests -v
 uv lock
 ```
@@ -62,7 +69,7 @@ If `uv` is not installed yet, install it first and then run `uv sync`. The first
 
 ## Course Config
 
-Courses live in a JSON file. Each course points to a `provider` and a provider-specific `provider_config`.
+Course configs live in `configs/`. Each course points to a `provider` and a provider-specific `provider_config`.
 
 Example:
 
@@ -139,7 +146,7 @@ That gives you a cleaner mental model:
 - `provider` answers "which booking family is this course on?"
 - `provider_config` answers "what request does this specific course use, and how do I parse the response?"
 
-Starter templates for real sites live in `courses.starter.json`.
+Starter templates for real sites live in `configs/starter.json`.
 
 ### `tenfore` live mode
 
@@ -175,7 +182,7 @@ Example:
 }
 ```
 
-That config is ready to run today in `courses.mcg.json`.
+That config is ready to run today in `configs/mcg.json`.
 
 Adding another TenFore course is usually just a new JSON entry with:
 
@@ -221,7 +228,7 @@ Example:
 }
 ```
 
-That config is ready to run today in `courses.pohick.json`.
+That config is ready to run today in `configs/pohick.json`.
 
 If you want to use the mixed starter file before the other providers are wired, search with `--course-id pohick-bay-teeitup` so only the live TeeItUp entry is queried.
 
@@ -232,7 +239,7 @@ To add another course on the same TeeItUp hostname, you usually reuse the same `
 - `booking_url`
 - `provider_config.facility_id`
 
-`courses.fairfax.json` shows that pattern for Fairfax County's Laurel Hill (`4595`) and Burke Lake (`3485`) courses.
+`configs/fairfax.json` shows that pattern for Fairfax County's Laurel Hill (`4595`) and Burke Lake (`3485`) courses.
 
 ## Adding A New Course
 
@@ -300,4 +307,4 @@ The project now includes starter config entries for:
 - Fairfax County TeeItUp courses including Laurel Hill and Burke Lake
 - Pohick Bay via GolfNow
 
-`courses.live.json`, `courses.mcg.json`, `courses.pohick.json`, and `courses.fairfax.json` are runnable real-provider examples. `courses.starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.
+`configs/live.json`, `configs/mcg.json`, `configs/pohick.json`, and `configs/fairfax.json` are runnable real-provider examples. `configs/starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.

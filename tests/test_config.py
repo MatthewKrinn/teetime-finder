@@ -17,6 +17,7 @@ class ConfigTests(unittest.TestCase):
                       "id": "falls-road",
                       "name": "Falls Road Golf Course",
                       "provider": "tenfore",
+                      "group": "MCG",
                       "provider_config": {
                         "golf_course_id": 16503
                       }
@@ -29,6 +30,7 @@ class ConfigTests(unittest.TestCase):
             courses = load_courses(config_path)
             self.assertEqual(len(courses), 1)
             self.assertEqual(courses[0].id, "falls-road")
+            self.assertEqual(courses[0].group, "MCG")
 
 
 if __name__ == "__main__":

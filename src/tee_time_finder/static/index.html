@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tee Time Finder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/app.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+      <section class="panel filters-panel">
+        <div class="panel-head panel-head-top">
+          <h1>Tee Time Finder</h1>
+          <span id="selected-course-count" class="summary-pill">0 selected</span>
+        </div>
+
+        <form id="search-form" class="filters-form">
+          <label class="field field-date">
+            <span class="field-label">Date</span>
+            <input id="date-input" name="date" type="date" required>
+          </label>
+
+          <fieldset class="field field-players players-field">
+            <legend class="field-label">Players</legend>
+            <div class="segmented segmented-tight" id="players-segmented">
+              <label class="segmented-option">
+                <input type="radio" name="players" value="1">
+                <span>1</span>
+              </label>
+              <label class="segmented-option">
+                <input type="radio" name="players" value="2" checked>
+                <span>2</span>
+              </label>
+              <label class="segmented-option">
+                <input type="radio" name="players" value="3">
+                <span>3</span>
+              </label>
+              <label class="segmented-option">
+                <input type="radio" name="players" value="4">
+                <span>4</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <section class="field range-field">
+            <div class="field-header field-header-tight">
+              <p class="field-label">Time</p>
+              <div class="range-values">
+                <span id="time-start-chip" class="range-chip">12:00 PM</span>
+                <span id="time-end-chip" class="range-chip">4:00 PM</span>
+              </div>
+            </div>
+
+            <div class="range-shell">
+              <div id="range-track" class="range-track"></div>
+              <input id="time-start" class="range-input range-input-start" type="range" min="300" max="1200" step="5" value="720">
+              <input id="time-end" class="range-input range-input-end" type="range" min="300" max="1200" step="5" value="960">
+            </div>
+          </section>
+
+          <fieldset class="field field-holes">
+            <legend class="field-label">Holes</legend>
+            <div class="segmented">
+              <label class="segmented-option">
+                <input type="radio" name="holes" value="either" checked>
+                <span>Either</span>
+              </label>
+              <label class="segmented-option">
+                <input type="radio" name="holes" value="9">
+                <span>9 holes</span>
+              </label>
+              <label class="segmented-option">
+                <input type="radio" name="holes" value="18">
+                <span>18 holes</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button id="search-button" class="primary-button" type="submit">Search Live Tee Times</button>
+            <button id="all-on-button" class="ghost-button" type="button">All On</button>
+            <button id="all-off-button" class="ghost-button" type="button">All Off</button>
+          </div>
+
+          <section class="field course-field">
+            <div class="field-header field-header-tight">
+              <p class="field-label">Courses</p>
+            </div>
+            <div id="course-groups" class="course-groups">
+              <div class="placeholder-card placeholder-card-compact">Loading courses...</div>
+            </div>
+          </section>
+        </form>
+      </section>
+
+      <main class="layout">
+        <section class="panel results-panel">
+          <div class="panel-head results-head">
+            <div>
+              <h2 id="results-title">Press Search</h2>
+              <p id="results-meta" class="results-meta">Choose filters above, then search.</p>
+            </div>
+            <div class="results-chips">
+              <span id="results-window-chip" class="summary-pill">12:00 PM to 4:00 PM</span>
+              <span id="results-holes-chip" class="summary-pill">Either holes</span>
+            </div>
+          </div>
+
+          <div id="status-banner" class="status-banner hidden"></div>
+          <div id="results-grid" class="results-grid">
+            <div class="placeholder-card">
+              Press Search to load tee times.
+            </div>
+          </div>
+          <div id="results-pagination" class="results-pagination hidden">
+            <button id="pagination-prev" class="ghost-button pagination-button" type="button">Previous</button>
+            <span id="pagination-info" class="pagination-info">Page 1</span>
+            <button id="pagination-next" class="ghost-button pagination-button" type="button">Next</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

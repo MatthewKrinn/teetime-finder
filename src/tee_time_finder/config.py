@@ -15,6 +15,7 @@ def load_courses(config_path: str | Path) -> list[CourseDefinition]:
             name=item["name"],
             provider=item["provider"],
             timezone=item.get("timezone", "America/New_York"),
+            group=item.get("group"),
             booking_url=item.get("booking_url"),
             provider_config=item.get("provider_config", {}),
         )

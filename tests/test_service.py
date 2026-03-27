@@ -169,6 +169,52 @@ class TeeTimeServiceTests(unittest.TestCase):
         self.assertEqual(results[0].price, 40.75)
         self.assertEqual(results[0].booking_url, "https://example.com/slot/1")
 
+    def test_service_can_filter_by_holes(self) -> None:
+        course = CourseDefinition(
+            id="json-course",
+            name="JSON Course",
+            provider="json_api",
+            provider_config={
+                "endpoint": "https://example.com/api/search",
+                "items_path": "results",
+                "starts_at_field": "startsAt",
+                "price_field": "price",
+                "holes_field": "holes",
+                "available_players_field": "availablePlayers",
+            },
+        )
+        http_client = StubHttpClient(
+            payload={
+                "results": [
+                    {
+                        "startsAt": "2026-03-27T12:05:00",
+                        "price": 55,
+                        "holes": 9,
+                        "availablePlayers": 4,
+                    },
+                    {
+                        "startsAt": "2026-03-27T12:10:00",
+                        "price": 72,
+                        "holes": 18,
+                        "availablePlayers": 4,
+                    },
+                ]
+            }
+        )
+        service = TeeTimeService([course], http_client=http_client)
+
+        results = service.search(
+            SearchRequest(
+                date=date.fromisoformat("2026-03-27"),
+                players=2,
+                holes=18,
+            )
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].holes, 18)
+        self.assertEqual(results[0].price, 72)
+
     def test_tenfore_provider_queries_live_style_endpoint_and_selects_18_hole_rate(self) -> None:
         course = CourseDefinition(
             id="falls-road-tenfore",
@@ -364,9 +410,13 @@ class TeeTimeServiceTests(unittest.TestCase):
 
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].starts_at.strftime("%Y-%m-%d %H:%M"), "2026-03-27 08:10")
-        self.assertEqual(results[0].price, 73.0)
-        self.assertEqual(results[0].holes, 18)
-        self.assertEqual(results[0].rate_name, "18 Holes")
+        self.assertEqual(results[0].price, 50.0)
+        self.assertEqual(results[0].price_min, 50.0)
+        self.assertEqual(results[0].price_max, 73.0)
+        self.assertIsNone(results[0].holes)
+        self.assertEqual(results[0].hole_options, (9, 18))
+        self.assertEqual(results[0].player_options, (1, 2, 3, 4))
+        self.assertIsNone(results[0].rate_name)
         self.assertEqual(
             results[0].booking_url,
             "https://nova-parks.book.teeitup.com/?course=1172&date=2026-03-27",
@@ -406,7 +456,7 @@ class TeeTimeServiceTests(unittest.TestCase):
         self.assertEqual(results[0].price, 40.75)
         self.assertEqual(http_client.requests[0]["url"], "https://example.com/api/search")
 
-    def test_teeitup_provider_uses_remaining_spots_for_availability(self) -> None:
+    def test_teeitup_provider_uses_allowed_players_for_availability(self) -> None:
         course = CourseDefinition(
             id="pohick-bay",
             name="Pohick Bay Regional Parks Golf Course",
@@ -421,14 +471,14 @@ class TeeTimeServiceTests(unittest.TestCase):
             {
                 "teetimes": [
                     {
-                        "teetime": "2026-03-27T15:00:00.000Z",
-                        "bookedPlayers": 3,
-                        "maxPlayers": 4,
+                        "teetime": "2026-03-27T11:40:00.000Z",
+                        "bookedPlayers": 2,
+                        "maxPlayers": 2,
                         "rates": [
                             {
                                 "name": "18 Holes",
                                 "holes": 18,
-                                "allowedPlayers": [1, 2, 3, 4],
+                                "allowedPlayers": [1, 2],
                                 "greenFeeCart": 7300,
                             }
                         ],
@@ -445,7 +495,10 @@ class TeeTimeServiceTests(unittest.TestCase):
                 players=2,
             )
         )
-        self.assertEqual(blocked_results, [])
+        self.assertEqual(len(blocked_results), 1)
+        self.assertEqual(blocked_results[0].starts_at.strftime("%H:%M"), "07:40")
+        self.assertEqual(blocked_results[0].available_players, 2)
+        self.assertEqual(blocked_results[0].player_options, (1, 2))
 
         single_results = service.search(
             SearchRequest(
@@ -454,7 +507,70 @@ class TeeTimeServiceTests(unittest.TestCase):
             )
         )
         self.assertEqual(len(single_results), 1)
-        self.assertEqual(single_results[0].available_players, 1)
+        self.assertEqual(single_results[0].available_players, 2)
+
+        four_player_results = service.search(
+            SearchRequest(
+                date=date.fromisoformat("2026-03-27"),
+                players=4,
+            )
+        )
+        self.assertEqual(four_player_results, [])
+
+    def test_teeitup_provider_holes_filter_selects_single_hole_option(self) -> None:
+        course = CourseDefinition(
+            id="pohick-bay",
+            name="Pohick Bay Regional Parks Golf Course",
+            provider="teeitup",
+            timezone="America/New_York",
+            provider_config={
+                "alias": "nova-parks",
+                "facility_id": 1172,
+                "prefer_holes": 18,
+            },
+        )
+        payload = [
+            {
+                "teetimes": [
+                    {
+                        "teetime": "2026-03-27T11:50:00.000Z",
+                        "maxPlayers": 4,
+                        "rates": [
+                            {
+                                "name": "18 Holes",
+                                "holes": 18,
+                                "allowedPlayers": [1, 2, 3, 4],
+                                "greenFeeCart": 7300,
+                            },
+                            {
+                                "name": "9 Holes",
+                                "holes": 9,
+                                "allowedPlayers": [1, 2, 3, 4],
+                                "greenFeeCart": 5000,
+                            },
+                        ],
+                    }
+                ]
+            }
+        ]
+        http_client = StubHttpClient(payload=payload)
+        service = TeeTimeService([course], http_client=http_client)
+
+        results = service.search(
+            SearchRequest(
+                date=date.fromisoformat("2026-03-27"),
+                players=2,
+                holes=18,
+            )
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].holes, 18)
+        self.assertEqual(results[0].hole_options, (18,))
+        self.assertEqual(results[0].price, 73.0)
+        self.assertEqual(results[0].price_min, 73.0)
+        self.assertEqual(results[0].price_max, 73.0)
+        self.assertEqual(results[0].rate_name, "18 Holes")
 
 
 if __name__ == "__main__":

@@ -24,6 +24,19 @@ def parse_time(value: str) -> time:
     raise ValueError(f"Unsupported time format: {value}")
 
 
+def parse_holes(value: str | None) -> int | None:
+    if value is None:
+        return None
+    normalized = value.strip().lower()
+    if normalized in {"", "either", "any"}:
+        return None
+    if normalized == "9":
+        return 9
+    if normalized == "18":
+        return 18
+    raise ValueError("holes must be 9, 18, or either")
+
+
 def parse_datetime(date_value: str, time_value: str) -> datetime:
     return datetime.combine(parse_date(date_value), parse_time(time_value))
 

@@ -9,7 +9,7 @@ from tee_time_finder.config import load_courses
 from tee_time_finder.curl_import import import_curl_to_course_config
 from tee_time_finder.models import SearchRequest
 from tee_time_finder.service import TeeTimeService
-from tee_time_finder.utils import parse_time
+from tee_time_finder.utils import parse_holes, parse_time
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -25,6 +25,10 @@ def build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("--players", required=True, type=int, help="Required player count")
     search_parser.add_argument("--earliest", help="Earliest tee time in HH:MM format")
     search_parser.add_argument("--latest", help="Latest tee time in HH:MM format")
+    search_parser.add_argument(
+        "--holes",
+        help="Optional holes filter: 9, 18, or either",
+    )
     search_parser.add_argument(
         "--course-id",
         action="append",
@@ -110,6 +114,7 @@ def main() -> None:
         players=args.players,
         earliest=parse_time(args.earliest) if args.earliest else None,
         latest=parse_time(args.latest) if args.latest else None,
+        holes=parse_holes(args.holes),
         course_ids=set(args.course_ids) if args.course_ids else None,
     )
     results = service.search(request)
@@ -122,8 +127,12 @@ def main() -> None:
                 "starts_at": item.starts_at.isoformat(),
                 "retrieved_at": item.retrieved_at.isoformat(),
                 "available_players": item.available_players,
+                "player_options": list(item.player_options) if item.player_options else None,
                 "price": item.price,
+                "price_min": item.price_min,
+                "price_max": item.price_max,
                 "holes": item.holes,
+                "hole_options": list(item.hole_options) if item.hole_options else None,
                 "rate_name": item.rate_name,
                 "booking_url": item.booking_url,
             }
@@ -150,9 +159,9 @@ def print_table(results: list) -> None:
         (
             item.course_name,
             item.starts_at.strftime("%Y-%m-%d %H:%M"),
-            str(item.holes) if item.holes is not None else "-",
-            str(item.available_players) if item.available_players is not None else "-",
-            f"${item.price:.2f}" if item.price is not None else "-",
+            format_holes(item),
+            format_players(item),
+            format_price(item),
             item.provider,
         )
         for item in results
@@ -172,6 +181,52 @@ def parse_replacements(values: list[str]) -> dict[str, str]:
         old, new = value.split("=", 1)
         replacements[old] = new
     return replacements
+
+
+def format_players(item: object) -> str:
+    options = getattr(item, "player_options", None)
+    if options:
+        return format_option_values(options, pair_joiner=" or ")
+    available_players = getattr(item, "available_players", None)
+    return str(available_players) if available_players is not None else "-"
+
+
+def format_holes(item: object) -> str:
+    options = getattr(item, "hole_options", None)
+    if options:
+        return format_option_values(options, pair_joiner="-")
+    holes = getattr(item, "holes", None)
+    return str(holes) if holes is not None else "-"
+
+
+def format_price(item: object) -> str:
+    low = getattr(item, "price_min", None)
+    high = getattr(item, "price_max", None)
+    if low is None and high is None:
+        value = getattr(item, "price", None)
+        return f"${value:.2f}" if value is not None else "-"
+    if low is None:
+        return f"${high:.2f}"
+    if high is None or abs(high - low) < 0.0001:
+        return f"${low:.2f}"
+    return f"${low:.2f}-${high:.2f}"
+
+
+def format_option_values(values: tuple[int, ...], pair_joiner: str) -> str:
+    ordered = tuple(sorted(values))
+    if len(ordered) == 1:
+        return str(ordered[0])
+    if _is_contiguous(ordered):
+        if len(ordered) == 2 and pair_joiner.strip():
+            return f"{ordered[0]}{pair_joiner}{ordered[1]}"
+        return f"{ordered[0]}-{ordered[-1]}"
+    if len(ordered) == 2 and pair_joiner.strip():
+        return f"{ordered[0]}{pair_joiner}{ordered[1]}"
+    return ", ".join(str(value) for value in ordered)
+
+
+def _is_contiguous(values: tuple[int, ...]) -> bool:
+    return all(right - left == 1 for left, right in zip(values, values[1:]))
 
 
 if __name__ == "__main__":

@@ -5,12 +5,15 @@ import json
 from datetime import date
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from tee_time_finder.config import load_courses
-from tee_time_finder.models import SearchRequest
+from tee_time_finder.models import CourseDefinition, SearchRequest
 from tee_time_finder.service import TeeTimeService
-from tee_time_finder.utils import parse_time
+from tee_time_finder.utils import parse_holes, parse_time
+
+STATIC_DIR = Path(__file__).with_name("static")
 
 def run_server(config_path: str, host: str = "127.0.0.1", port: int = 8080) -> None:
     courses = load_courses(config_path)
@@ -26,6 +29,12 @@ def build_handler(service: TeeTimeService, host: str, port: int):
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
             if parsed.path == "/":
+                self._write_html(_read_static_text("index.html"))
+                return
+            if parsed.path.startswith("/assets/"):
+                self._write_static_asset(parsed.path.removeprefix("/assets/"))
+                return
+            if parsed.path in {"/api", "/api/"}:
                 self._write_json(
                     {
                         "name": "tee-time-finder",
@@ -44,16 +53,7 @@ def build_handler(service: TeeTimeService, host: str, port: int):
                 self._write_json(build_openapi_spec(host, port))
                 return
             if parsed.path == "/api/courses":
-                self._write_json(
-                    [
-                        {
-                            "id": course.id,
-                            "name": course.name,
-                            "provider": course.provider,
-                        }
-                        for course in service.list_courses()
-                    ]
-                )
+                self._write_json(serialize_courses(service.list_courses()))
                 return
             if parsed.path == "/api/search":
                 try:
@@ -90,6 +90,20 @@ def build_handler(service: TeeTimeService, host: str, port: int):
             self.end_headers()
             self.wfile.write(encoded)
 
+        def _write_static_asset(self, asset_name: str) -> None:
+            try:
+                encoded, content_type = _read_static_asset(asset_name)
+            except FileNotFoundError:
+                self.send_error(HTTPStatus.NOT_FOUND)
+                return
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Cache-Control", "no-store, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.end_headers()
+            self.wfile.write(encoded)
+
     return TeeTimeHandler
 
 
@@ -104,6 +118,7 @@ def parse_request(params: dict[str, list[str]]) -> SearchRequest:
         players=int(players_value),
         earliest=parse_time(first(params, "earliest")) if first(params, "earliest") else None,
         latest=parse_time(first(params, "latest")) if first(params, "latest") else None,
+        holes=parse_holes(first(params, "holes")),
         course_ids=course_ids,
     )
 
@@ -111,6 +126,33 @@ def parse_request(params: dict[str, list[str]]) -> SearchRequest:
 def first(params: dict[str, list[str]], key: str) -> str | None:
     values = params.get(key)
     return values[0] if values else None
+
+
+def serialize_courses(courses: list[CourseDefinition]) -> list[dict[str, object]]:
+    return [
+        {
+            "id": course.id,
+            "name": course.name,
+            "provider": course.provider,
+            "group": course.group or infer_course_group(course),
+        }
+        for course in courses
+    ]
+
+
+def infer_course_group(course: CourseDefinition) -> str:
+    if course.group:
+        return course.group
+    alias = str(course.provider_config.get("alias", "")).strip().lower()
+    if alias == "fairfax-county-mco":
+        return "Fairfax"
+    if alias == "nova-parks":
+        return "Pohick"
+    if course.provider == "tenfore":
+        return "MCG"
+    if "pohick" in course.id.lower():
+        return "Pohick"
+    return course.provider.replace("_", " ").title()
 
 
 def serialize_results(results: list) -> list[dict[str, object]]:
@@ -122,8 +164,12 @@ def serialize_results(results: list) -> list[dict[str, object]]:
             "starts_at": item.starts_at.isoformat(),
             "retrieved_at": item.retrieved_at.isoformat(),
             "available_players": item.available_players,
+            "player_options": list(item.player_options) if item.player_options else None,
             "price": item.price,
+            "price_min": item.price_min,
+            "price_max": item.price_max,
             "holes": item.holes,
+            "hole_options": list(item.hole_options) if item.hole_options else None,
             "rate_name": item.rate_name,
             "booking_url": item.booking_url,
         }
@@ -160,6 +206,7 @@ def build_openapi_spec(host: str, port: int) -> dict[str, object]:
                         parameter("players", "query", True, "Required player count", "integer"),
                         parameter("earliest", "query", False, "Earliest time in HH:MM format", "string"),
                         parameter("latest", "query", False, "Latest time in HH:MM format", "string"),
+                        parameter("holes", "query", False, "Optional holes filter: 9, 18, or either", "string"),
                         {
                             "name": "course_id",
                             "in": "query",
@@ -224,6 +271,21 @@ def render_docs(host: str, port: int) -> str:
     </script>
   </body>
 </html>"""
+
+
+def _read_static_asset(asset_name: str) -> tuple[bytes, str]:
+    safe_name = Path(asset_name).name
+    asset_path = STATIC_DIR / safe_name
+    content_type = {
+        ".css": "text/css; charset=utf-8",
+        ".js": "text/javascript; charset=utf-8",
+        ".html": "text/html; charset=utf-8",
+    }.get(asset_path.suffix, "application/octet-stream")
+    return asset_path.read_bytes(), content_type
+
+
+def _read_static_text(asset_name: str) -> str:
+    return (STATIC_DIR / asset_name).read_text()
 
 
 def main() -> None:
