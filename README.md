@@ -29,6 +29,7 @@ From the project root:
 uv sync
 uv run tee-time-finder list-courses --config configs/live.json
 uv run tee-time-finder search --config configs/live.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config configs/enterprise.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder search --config configs/pohick.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder search --config configs/fairfax.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder search --config configs/mcg.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
@@ -241,6 +242,8 @@ To add another course on the same TeeItUp hostname, you usually reuse the same `
 
 `configs/fairfax.json` shows that pattern for Fairfax County's Laurel Hill (`4595`) and Burke Lake (`3485`) courses.
 
+`configs/enterprise.json` is a runnable one-course example for Enterprise Golf Course (`7790`) on the `pg-parks-rec` TeeItUp host.
+
 ## Adding A New Course
 
 If the course uses an existing provider adapter:
@@ -307,4 +310,4 @@ The project now includes starter config entries for:
 - Fairfax County TeeItUp courses including Laurel Hill and Burke Lake
 - Pohick Bay via GolfNow
 
-`configs/live.json`, `configs/mcg.json`, `configs/pohick.json`, and `configs/fairfax.json` are runnable real-provider examples. `configs/starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.
+`configs/live.json`, `configs/mcg.json`, `configs/pohick.json`, `configs/fairfax.json`, and `configs/enterprise.json` are runnable real-provider examples. `configs/starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.

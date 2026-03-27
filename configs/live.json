@@ -171,6 +171,21 @@
       }
     },
     {
+      "id": "enterprise-teeitup",
+      "name": "Enterprise Golf Course",
+      "provider": "teeitup",
+      "group": "PG County",
+      "timezone": "America/New_York",
+      "booking_url": "https://department-of-parks-and-recreation-prince-georges-county.book.teeitup.com/?course=7790&date={date}&max=999999&utm_campaign=reserve&utm_medium=organic",
+      "provider_config": {
+        "alias": "pg-parks-rec",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 7790,
+        "prefer_holes": 18,
+        "booking_url_template": "https://department-of-parks-and-recreation-prince-georges-county.book.teeitup.com/?course={facility_id}&date={date}&max=999999&utm_campaign=reserve&utm_medium=organic"
+      }
+    },
+    {
       "id": "laurel-hill-teeitup",
       "name": "Laurel Hill Golf Club",
       "provider": "teeitup",
