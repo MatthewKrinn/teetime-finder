@@ -8,7 +8,11 @@ from tee_time_finder.service import TeeTimeService
 
 
 class StubHttpClient(HttpClient):
-    def __init__(self, payload: object | None = None) -> None:
+    def __init__(
+        self,
+        payload: object | None = None,
+        payload_by_url: dict[str, object] | None = None,
+    ) -> None:
         self.requests: list[dict[str, object]] = []
         self.payload = payload or {
             "results": [
@@ -20,6 +24,7 @@ class StubHttpClient(HttpClient):
                 }
             ]
         }
+        self.payload_by_url = payload_by_url or {}
 
     def request_json(
         self,
@@ -36,6 +41,8 @@ class StubHttpClient(HttpClient):
                 "body": body,
             }
         )
+        if url in self.payload_by_url:
+            return self.payload_by_url[url]
         return self.payload
 
 
@@ -214,6 +221,198 @@ class TeeTimeServiceTests(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].holes, 18)
         self.assertEqual(results[0].price, 72)
+
+    def test_chronogolf_provider_alias_supports_marketplace_response(self) -> None:
+        course = CourseDefinition(
+            id="umd-chronogolf",
+            name="University of Maryland Golf Course",
+            provider="chronogolf",
+            provider_config={
+                "endpoint": "https://www.chronogolf.com/marketplace/v2/teetimes?start_date={date}&course_ids={course_uuid}&holes=9,18&free_slots={players}&page=1",
+                "headers": {
+                    "Accept": "application/json",
+                    "User-Agent": "Mozilla/5.0",
+                },
+                "variables": {
+                    "course_uuid": "617d2a87-3ddc-4b68-a75c-fcbddb74ca22",
+                    "club_slug": "university-of-maryland-golf-club",
+                },
+                "items_path": "teetimes",
+                "starts_at_field": "starts_at",
+                "price_field": "default_price.subtotal",
+                "hole_options_field": "course.bookable_holes",
+                "rate_name_field": "default_price.affiliation_type",
+                "min_players_field": "min_player_size",
+                "max_players_field": "max_player_size",
+                "available_players_field": "max_player_size",
+                "booking_url_template": "https://www.chronogolf.com/club/{club_slug}?date={date}&step=options&teetime={uuid}",
+            },
+        )
+        payload = {
+            "status": "open",
+            "teetimes": [
+                {
+                    "uuid": "2f8d0c43-6567-4a9b-8f51-4150cf734949",
+                    "starts_at": "2026-03-27T12:20:00Z",
+                    "min_player_size": 2,
+                    "max_player_size": 4,
+                    "course": {"bookable_holes": [9, 18]},
+                    "default_price": {
+                        "subtotal": 57.0,
+                        "affiliation_type": "Guest",
+                    },
+                }
+            ],
+        }
+        http_client = StubHttpClient(payload=payload)
+        service = TeeTimeService([course], http_client=http_client)
+
+        results = service.search(
+            SearchRequest(
+                date=date.fromisoformat("2026-03-27"),
+                players=2,
+            )
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].price, 57.0)
+        self.assertIsNone(results[0].holes)
+        self.assertEqual(results[0].hole_options, (9, 18))
+        self.assertEqual(results[0].player_options, (2, 3, 4))
+        self.assertEqual(results[0].rate_name, "Guest")
+        self.assertEqual(results[0].available_players, 4)
+        self.assertEqual(
+            results[0].booking_url,
+            "https://www.chronogolf.com/club/university-of-maryland-golf-club?date=2026-03-27&step=options&teetime=2f8d0c43-6567-4a9b-8f51-4150cf734949",
+        )
+        self.assertEqual(http_client.requests[0]["headers"]["Accept"], "application/json")
+        self.assertEqual(http_client.requests[0]["headers"]["User-Agent"], "Mozilla/5.0")
+
+    def test_chronogolf_provider_uses_widget_endpoint_for_legacy_booking_feed(self) -> None:
+        course = CourseDefinition(
+            id="umd-chronogolf",
+            name="University of Maryland Golf Course",
+            provider="chronogolf",
+            booking_url="https://www.chronogolf.com/club/university-of-maryland-golf-club?date={date}",
+            provider_config={
+                "club_id": 7630,
+                "course_id": 8701,
+                "club_slug": "university-of-maryland-golf-club",
+                "affiliation_type_id": 31342,
+                "supported_holes": [9, 18],
+            },
+        )
+        http_client = StubHttpClient(
+            payload_by_url={
+                "https://www.chronogolf.com/marketplace/clubs/7630/teetimes?date=2026-03-27&course_id=8701&affiliation_type_ids=31342%2C31342%2C31342&nb_holes=18": [
+                    {
+                        "id": 1001,
+                        "uuid": "legacy-18-0840",
+                        "date": "2026-03-27",
+                        "start_time": "08:40",
+                        "out_of_capacity": False,
+                        "frozen": False,
+                        "green_fees": [
+                            {"subtotal": 80.0, "affiliation_type_name": "Guest"},
+                            {"subtotal": 80.0, "affiliation_type_name": "Guest"},
+                            {"subtotal": 80.0, "affiliation_type_name": "Guest"},
+                        ],
+                    }
+                ]
+            }
+        )
+        service = TeeTimeService([course], http_client=http_client)
+
+        results = service.search(
+            SearchRequest(
+                date=date.fromisoformat("2026-03-27"),
+                players=3,
+                earliest=None,
+                latest=None,
+                holes=18,
+            )
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].starts_at.strftime("%H:%M"), "08:40")
+        self.assertEqual(results[0].holes, 18)
+        self.assertEqual(results[0].hole_options, (18,))
+        self.assertEqual(results[0].price, 80.0)
+        self.assertEqual(results[0].player_options, (3,))
+        self.assertEqual(results[0].available_players, 3)
+        self.assertEqual(results[0].rate_name, "Guest")
+        self.assertEqual(
+            http_client.requests[0]["url"],
+            "https://www.chronogolf.com/marketplace/clubs/7630/teetimes?date=2026-03-27&course_id=8701&affiliation_type_ids=31342%2C31342%2C31342&nb_holes=18",
+        )
+        self.assertEqual(http_client.requests[0]["headers"]["Accept"], "application/json")
+        self.assertEqual(http_client.requests[0]["headers"]["User-Agent"], "Mozilla/5.0")
+
+    def test_chronogolf_provider_merges_9_and_18_hole_widget_rows(self) -> None:
+        course = CourseDefinition(
+            id="umd-chronogolf",
+            name="University of Maryland Golf Course",
+            provider="chronogolf",
+            booking_url="https://www.chronogolf.com/club/university-of-maryland-golf-club?date={date}",
+            provider_config={
+                "club_id": 7630,
+                "course_id": 8701,
+                "club_slug": "university-of-maryland-golf-club",
+                "affiliation_type_id": 31342,
+                "supported_holes": [9, 18],
+            },
+        )
+        http_client = StubHttpClient(
+            payload_by_url={
+                "https://www.chronogolf.com/marketplace/clubs/7630/teetimes?date=2026-03-27&course_id=8701&affiliation_type_ids=31342%2C31342&nb_holes=9": [
+                    {
+                        "id": 1002,
+                        "uuid": "legacy-9-0820",
+                        "date": "2026-03-27",
+                        "start_time": "08:20",
+                        "out_of_capacity": False,
+                        "frozen": False,
+                        "green_fees": [
+                            {"subtotal": 57.0, "affiliation_type_name": "Guest"},
+                            {"subtotal": 57.0, "affiliation_type_name": "Guest"},
+                        ],
+                    }
+                ],
+                "https://www.chronogolf.com/marketplace/clubs/7630/teetimes?date=2026-03-27&course_id=8701&affiliation_type_ids=31342%2C31342&nb_holes=18": [
+                    {
+                        "id": 1003,
+                        "uuid": "legacy-18-0820",
+                        "date": "2026-03-27",
+                        "start_time": "08:20",
+                        "out_of_capacity": False,
+                        "frozen": False,
+                        "green_fees": [
+                            {"subtotal": 80.0, "affiliation_type_name": "Guest"},
+                            {"subtotal": 80.0, "affiliation_type_name": "Guest"},
+                        ],
+                    }
+                ],
+            }
+        )
+        service = TeeTimeService([course], http_client=http_client)
+
+        results = service.search(
+            SearchRequest(
+                date=date.fromisoformat("2026-03-27"),
+                players=2,
+            )
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].starts_at.strftime("%H:%M"), "08:20")
+        self.assertIsNone(results[0].holes)
+        self.assertEqual(results[0].hole_options, (9, 18))
+        self.assertEqual(results[0].price, 57.0)
+        self.assertEqual(results[0].price_min, 57.0)
+        self.assertEqual(results[0].price_max, 80.0)
+        self.assertEqual(results[0].player_options, (2,))
+        self.assertEqual(results[0].available_players, 2)
+        self.assertEqual(len(http_client.requests), 2)
 
     def test_tenfore_provider_queries_live_style_endpoint_and_selects_18_hole_rate(self) -> None:
         course = CourseDefinition(

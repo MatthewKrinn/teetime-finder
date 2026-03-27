@@ -1,3 +1,4 @@
+from tee_time_finder.providers.chronogolf import ChronoGolfProvider
 from tee_time_finder.providers.html_regex import HtmlRegexProvider
 from tee_time_finder.providers.json_api import JsonApiProvider
 from tee_time_finder.providers.site_family import SiteFamilyProvider
@@ -9,5 +10,6 @@ provider_registry = {
     "html_regex": HtmlRegexProvider(),
     "tenfore": TenForeProvider(),
     "teeitup": TeeItUpProvider(),
+    "chronogolf": ChronoGolfProvider(),
     "golfnow": SiteFamilyProvider(),
 }

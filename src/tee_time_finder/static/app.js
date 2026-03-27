@@ -25,6 +25,7 @@ const elements = {
   allOffButton: document.querySelector("#all-off-button"),
   resultsTitle: document.querySelector("#results-title"),
   resultsMeta: document.querySelector("#results-meta"),
+  resultsPlayersChip: document.querySelector("#results-players-chip"),
   resultsWindowChip: document.querySelector("#results-window-chip"),
   resultsHolesChip: document.querySelector("#results-holes-chip"),
   statusBanner: document.querySelector("#status-banner"),
@@ -258,6 +259,8 @@ function updateCourseSummary() {
 function updateSummaryChips() {
   const start = Number(elements.timeStart.value);
   const end = Number(elements.timeEnd.value);
+  const playersValue = selectedPlayersValue();
+  elements.resultsPlayersChip.textContent = `${playersValue} player${playersValue === "1" ? "" : "s"}`;
   elements.resultsWindowChip.textContent = `${formatMinutesDisplay(start)} to ${formatMinutesDisplay(end)}`;
 
   const holesValue = selectedHolesValue();

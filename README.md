@@ -30,6 +30,7 @@ uv sync
 uv run tee-time-finder list-courses --config configs/live.json
 uv run tee-time-finder search --config configs/live.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder search --config configs/enterprise.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config configs/umd.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder search --config configs/pohick.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder search --config configs/fairfax.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder search --config configs/mcg.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
@@ -115,8 +116,14 @@ Supported config keys:
 - `time_field`: field name or dot path within each item
 - `date_field`: optional field name or dot path if the date lives on the item
 - `price_field`: optional field name or dot path
+- `price_min_field`: optional field name or dot path for minimum price
+- `price_max_field`: optional field name or dot path for maximum price
 - `holes_field`: optional field name or dot path
+- `hole_options_field`: optional field name or dot path containing a list of hole options
 - `rate_name_field`: optional field name or dot path
+- `player_options_field`: optional field name or dot path containing a list of player-count options
+- `min_players_field`: optional field name or dot path for minimum player count
+- `max_players_field`: optional field name or dot path for maximum player count
 - `available_players_field`: optional field name or dot path
 - `booking_url_field`: optional field name or dot path
 - `booking_url_template`: optional URL template using item keys
@@ -138,9 +145,9 @@ Optional named groups in the regex:
 - `players`
 - `url`
 
-### `tenfore`, `teeitup`, `golfnow`
+### `tenfore`, `teeitup`, `chronogolf`, `golfnow`
 
-These are named site-family adapters for real-world golf booking ecosystems. `tenfore` and `teeitup` can now run in dedicated live modes described below. `golfnow` still works best when you point it at a real browser-captured request recipe and then fill in the response mapping fields.
+These are named site-family adapters for real-world golf booking ecosystems. `tenfore` and `teeitup` have dedicated live adapters described below. `chronogolf` is a named config path for Chronogolf marketplace JSON responses. `golfnow` still works best when you point it at a real browser-captured request recipe and then fill in the response mapping fields.
 
 That gives you a cleaner mental model:
 
@@ -244,6 +251,23 @@ To add another course on the same TeeItUp hostname, you usually reuse the same `
 
 `configs/enterprise.json` is a runnable one-course example for Enterprise Golf Course (`7790`) on the `pg-parks-rec` TeeItUp host.
 
+### `chronogolf` config pattern
+
+`chronogolf` is currently backed by the shared JSON API adapter, but it is exposed as its own provider name so Chronogolf courses are easy to identify in configs and in the UI.
+
+Typical config fields:
+
+- `endpoint`: Chronogolf marketplace tee-time endpoint
+- `headers`: set a browser-like `User-Agent` such as `Mozilla/5.0`, because Chronogolf rejects the default Python `urllib` user agent
+- `variables.course_uuid`: the course UUID used in `course_ids`
+- `price_field`: usually `default_price.subtotal`
+- `hole_options_field`: usually `course.bookable_holes`
+- `min_players_field` and `max_players_field`: usually `min_player_size` and `max_player_size`
+- `available_players_field`: usually `max_player_size`
+- `booking_url_template`: optional deep link into the Chronogolf tee-time options step
+
+`configs/umd.json` is a runnable one-course example for University of Maryland Golf Course.
+
 ## Adding A New Course
 
 If the course uses an existing provider adapter:
@@ -310,4 +334,4 @@ The project now includes starter config entries for:
 - Fairfax County TeeItUp courses including Laurel Hill and Burke Lake
 - Pohick Bay via GolfNow
 
-`configs/live.json`, `configs/mcg.json`, `configs/pohick.json`, `configs/fairfax.json`, and `configs/enterprise.json` are runnable real-provider examples. `configs/starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.
+`configs/live.json`, `configs/mcg.json`, `configs/pohick.json`, `configs/fairfax.json`, `configs/enterprise.json`, and `configs/umd.json` are runnable real-provider examples. `configs/starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.

@@ -1,0 +1,20 @@
+{
+  "courses": [
+    {
+      "id": "umd-chronogolf",
+      "name": "University of Maryland Golf Course",
+      "provider": "chronogolf",
+      "group": "UMD",
+      "timezone": "America/New_York",
+      "booking_url": "https://www.chronogolf.com/club/university-of-maryland-golf-club?date={date}",
+      "provider_config": {
+        "club_id": 7630,
+        "course_id": 8701,
+        "club_slug": "university-of-maryland-golf-club",
+        "affiliation_type_id": 31342,
+        "rate_name": "Guest",
+        "supported_holes": [9, 18]
+      }
+    }
+  ]
+}
