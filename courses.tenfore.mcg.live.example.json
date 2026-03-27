@@ -1,0 +1,160 @@
+{
+  "courses": [
+    {
+      "id": "falls-road-tenfore",
+      "name": "Falls Road Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/fallsroad",
+      "provider_config": {
+        "golf_course_id": 16503,
+        "vanity_name": "fallsroad",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "northwest-tenfore",
+      "name": "Northwest Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/northwest",
+      "provider_config": {
+        "golf_course_id": 16504,
+        "vanity_name": "northwest",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "northwest-inside-9-tenfore",
+      "name": "Northwest Golf Course - Inside 9",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/northwest",
+      "provider_config": {
+        "golf_course_id": 16504,
+        "sub_course_id": 1032,
+        "vanity_name": "northwest",
+        "default_holes": 9,
+        "prefer_holes": 9,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "hampshire-greens-tenfore",
+      "name": "Hampshire Greens Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/hampshiregreens",
+      "provider_config": {
+        "golf_course_id": 16506,
+        "vanity_name": "hampshiregreens",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "laytonsville-tenfore",
+      "name": "Laytonsville Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/laytonsville",
+      "provider_config": {
+        "golf_course_id": 16507,
+        "vanity_name": "laytonsville",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "little-bennett-tenfore",
+      "name": "Little Bennett Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/littlebennett",
+      "provider_config": {
+        "golf_course_id": 16508,
+        "vanity_name": "littlebennett",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "needwood-tenfore",
+      "name": "Needwood Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/needwood",
+      "provider_config": {
+        "golf_course_id": 16509,
+        "vanity_name": "needwood",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "needwood-executive-9-tenfore",
+      "name": "Needwood Golf Course - Executive 9",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/needwood",
+      "provider_config": {
+        "golf_course_id": 16509,
+        "sub_course_id": 1031,
+        "vanity_name": "needwood",
+        "default_holes": 9,
+        "prefer_holes": 9,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "crossvines-tenfore",
+      "name": "Golf at The Crossvines",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/crossvines",
+      "provider_config": {
+        "golf_course_id": 16510,
+        "vanity_name": "crossvines",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "rattlewood-tenfore",
+      "name": "Rattlewood Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/rattlewood",
+      "provider_config": {
+        "golf_course_id": 16511,
+        "vanity_name": "rattlewood",
+        "default_holes": 18,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    },
+    {
+      "id": "sligo-creek-tenfore",
+      "name": "Sligo Creek Golf Course",
+      "provider": "tenfore",
+      "timezone": "America/New_York",
+      "booking_url": "https://fox.tenfore.golf/SligoCreek",
+      "provider_config": {
+        "golf_course_id": 16512,
+        "vanity_name": "SligoCreek",
+        "default_holes": 9,
+        "prefer_holes": 9,
+        "booking_url_template": "https://fox.tenfore.golf/{vanity_name}"
+      }
+    }
+  ]
+}

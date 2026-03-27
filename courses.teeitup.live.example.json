@@ -1,0 +1,18 @@
+{
+  "courses": [
+    {
+      "id": "pohick-bay-teeitup",
+      "name": "Pohick Bay Regional Golf Course (TeeItUp)",
+      "provider": "teeitup",
+      "timezone": "America/New_York",
+      "booking_url": "https://nova-parks.book.teeitup.com/?course=1172&date={date}&max=999999&utm_campaign=reserve&utm_medium=organic",
+      "provider_config": {
+        "alias": "nova-parks",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 1172,
+        "prefer_holes": 18,
+        "booking_url_template": "https://nova-parks.book.teeitup.com/?course={facility_id}&date={date}&max=999999&utm_campaign=reserve&utm_medium=organic"
+      }
+    }
+  ]
+}

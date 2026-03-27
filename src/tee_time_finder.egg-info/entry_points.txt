@@ -1,0 +1,2 @@
+[console_scripts]
+tee-time-finder = tee_time_finder.cli:main

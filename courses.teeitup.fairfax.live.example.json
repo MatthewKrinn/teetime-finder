@@ -1,0 +1,32 @@
+{
+  "courses": [
+    {
+      "id": "laurel-hill-teeitup",
+      "name": "Laurel Hill Golf Club",
+      "provider": "teeitup",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=4595&date={date}&holes=18&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 4595,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&holes=18&max=999999"
+      }
+    },
+    {
+      "id": "burke-lake-teeitup",
+      "name": "Burke Lake Golf Center",
+      "provider": "teeitup",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=3485&date={date}&holes=18&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 3485,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&holes=18&max=999999"
+      }
+    }
+  ]
+}
