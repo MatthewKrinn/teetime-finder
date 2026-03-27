@@ -9,6 +9,7 @@ description = "Extensible tee time aggregator for multiple booking providers"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Matthew Krinn" }]
+license = { text = "All Rights Reserved" }
 dependencies = []
 
 [project.scripts]
