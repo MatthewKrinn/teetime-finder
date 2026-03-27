@@ -2,6 +2,18 @@
 
 `tee_time_finder` is a Python app for searching live golf tee times across multiple booking providers from one place.
 
+## Prerequisites
+
+- Python 3.10 or newer 
+- `uv` installed 
+- Internet access for live tee-time searches
+
+For Mac with Homebrew installed, run:
+
+```
+brew install python uv
+```
+
 ## Use The UI
 
 Most people should start here.
