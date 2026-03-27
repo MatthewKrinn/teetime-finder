@@ -145,7 +145,7 @@ function renderCourseGroups(courses) {
     const groupMaster = document.createElement("label");
     groupMaster.className = "group-master";
     groupMaster.innerHTML = `
-      <input type="checkbox" class="group-master-input" checked>
+      <input type="checkbox" class="group-master-input">
       <span>Whole group</span>
     `;
     const groupMasterInput = groupMaster.querySelector("input");
@@ -166,7 +166,7 @@ function renderCourseGroups(courses) {
       const courseChoice = document.createElement("label");
       courseChoice.className = "course-choice";
       courseChoice.innerHTML = `
-        <input type="checkbox" class="course-checkbox" data-course-id="${escapeHtml(course.id)}" checked>
+        <input type="checkbox" class="course-checkbox" data-course-id="${escapeHtml(course.id)}">
         <span>${escapeHtml(course.name)}</span>
       `;
       const checkbox = courseChoice.querySelector("input");

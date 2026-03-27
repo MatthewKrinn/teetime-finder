@@ -204,6 +204,7 @@
       "id": "laurel-hill-teeitup",
       "name": "Laurel Hill Golf Club",
       "provider": "teeitup",
+      "group": "Fairfax",
       "timezone": "America/New_York",
       "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=4595&date={date}&holes=18&max=999999",
       "provider_config": {
@@ -218,6 +219,7 @@
       "id": "burke-lake-teeitup",
       "name": "Burke Lake Golf Center",
       "provider": "teeitup",
+      "group": "Fairfax",
       "timezone": "America/New_York",
       "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=3485&date={date}&holes=18&max=999999",
       "provider_config": {
@@ -226,6 +228,96 @@
         "facility_id": 3485,
         "prefer_holes": 18,
         "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&holes=18&max=999999"
+      }
+    },
+    {
+      "id": "twin-lakes-oaks-teeitup",
+      "name": "Twin Lakes Golf Course - Oaks Course",
+      "provider": "teeitup",
+      "group": "Fairfax",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=7756&date={date}&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 7756,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&max=999999"
+      }
+    },
+    {
+      "id": "twin-lakes-lakes-teeitup",
+      "name": "Twin Lakes Golf Course - Lakes Course",
+      "provider": "teeitup",
+      "group": "Fairfax",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=7743&date={date}&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 7743,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&max=999999"
+      }
+    },
+    {
+      "id": "greendale-teeitup",
+      "name": "Greendale Golf Course",
+      "provider": "teeitup",
+      "group": "Fairfax",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=7742&date={date}&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 7742,
+        "prefer_holes": 18,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&max=999999"
+      }
+    },
+    {
+      "id": "pinecrest-teeitup",
+      "name": "Pinecrest Golf Course",
+      "provider": "teeitup",
+      "group": "Fairfax",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=17005&date={date}&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 17005,
+        "prefer_holes": 9,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&max=999999"
+      }
+    },
+    {
+      "id": "oak-marr-teeitup",
+      "name": "Oak Marr Golf Center",
+      "provider": "teeitup",
+      "group": "Fairfax",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=17002&date={date}&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 17002,
+        "prefer_holes": 9,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&max=999999"
+      }
+    },
+    {
+      "id": "jefferson-district-teeitup",
+      "name": "Jefferson District Golf Course",
+      "provider": "teeitup",
+      "group": "Fairfax",
+      "timezone": "America/New_York",
+      "booking_url": "https://fairfax-county-mco.book.teeitup.golf/?course=17001&date={date}&max=999999",
+      "provider_config": {
+        "alias": "fairfax-county-mco",
+        "be_api_url": "https://phx-api-be-east-1b.kenna.io",
+        "facility_id": 17001,
+        "prefer_holes": 9,
+        "booking_url_template": "https://fairfax-county-mco.book.teeitup.golf/?course={facility_id}&date={date}&max=999999"
       }
     }
   ]
