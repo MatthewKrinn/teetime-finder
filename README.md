@@ -27,13 +27,13 @@ From the project root:
 
 ```bash
 uv sync
-uv run tee-time-finder list-courses --config courses.live.example.json
-uv run tee-time-finder search --config courses.live.example.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
-uv run tee-time-finder search --config courses.teeitup.live.example.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
-uv run tee-time-finder search --config courses.teeitup.fairfax.live.example.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
-uv run tee-time-finder search --config courses.tenfore.mcg.live.example.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder list-courses --config courses.live.json
+uv run tee-time-finder search --config courses.live.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config courses.pohick.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config courses.fairfax.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
+uv run tee-time-finder search --config courses.mcg.json --date 2026-03-27 --players 2 --earliest 12:00 --latest 16:00 --json
 uv run tee-time-finder import-curl --curl-file request.txt --course-id pohick-bay --course-name "Pohick Bay" --provider teeitup
-uv run python -m tee_time_finder.web --config courses.live.example.json --port 8080
+uv run python -m tee_time_finder.web --config courses.live.json --port 8080
 ```
 
 Then open:
@@ -52,8 +52,8 @@ Typical commands:
 
 ```bash
 uv sync
-uv run tee-time-finder list-courses --config courses.live.example.json
-uv run tee-time-finder search --config courses.live.example.json --date 2026-03-27 --players 2
+uv run tee-time-finder list-courses --config courses.live.json
+uv run tee-time-finder search --config courses.live.json --date 2026-03-27 --players 2
 uv run python -m unittest discover -s tests -v
 uv lock
 ```
@@ -139,7 +139,7 @@ That gives you a cleaner mental model:
 - `provider` answers "which booking family is this course on?"
 - `provider_config` answers "what request does this specific course use, and how do I parse the response?"
 
-Starter templates for real sites live in `courses.real_sites.starter.json`.
+Starter templates for real sites live in `courses.starter.json`.
 
 ### `tenfore` live mode
 
@@ -175,7 +175,7 @@ Example:
 }
 ```
 
-That config is ready to run today in `courses.tenfore.mcg.live.example.json`.
+That config is ready to run today in `courses.mcg.json`.
 
 Adding another TenFore course is usually just a new JSON entry with:
 
@@ -221,7 +221,7 @@ Example:
 }
 ```
 
-That config is ready to run today in `courses.teeitup.live.example.json`.
+That config is ready to run today in `courses.pohick.json`.
 
 If you want to use the mixed starter file before the other providers are wired, search with `--course-id pohick-bay-teeitup` so only the live TeeItUp entry is queried.
 
@@ -232,7 +232,7 @@ To add another course on the same TeeItUp hostname, you usually reuse the same `
 - `booking_url`
 - `provider_config.facility_id`
 
-`courses.teeitup.fairfax.live.example.json` shows that pattern for Fairfax County's Laurel Hill (`4595`) and Burke Lake (`3485`) courses.
+`courses.fairfax.json` shows that pattern for Fairfax County's Laurel Hill (`4595`) and Burke Lake (`3485`) courses.
 
 ## Adding A New Course
 
@@ -300,4 +300,4 @@ The project now includes starter config entries for:
 - Fairfax County TeeItUp courses including Laurel Hill and Burke Lake
 - Pohick Bay via GolfNow
 
-`courses.live.example.json`, `courses.tenfore.mcg.live.example.json`, `courses.teeitup.live.example.json`, and `courses.teeitup.fairfax.live.example.json` are runnable real-provider examples. `courses.real_sites.starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.
+`courses.live.json`, `courses.mcg.json`, `courses.pohick.json`, and `courses.fairfax.json` are runnable real-provider examples. `courses.starter.json` is still the mixed onboarding file, so its GolfNow entry remains a placeholder until we capture that request/response shape.
